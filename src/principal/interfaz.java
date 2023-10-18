@@ -4,6 +4,7 @@ public class interfaz extends javax.swing.JFrame {
 
     NumeroLinea nl;
     String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz", cadenaEntrada, temporalId;
+    String palabrasReservadas[] = {"int","float","char"};
     int tablaLexico[][] = {
         { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6,-1, 6, 6,-1, 6, 2, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
@@ -133,7 +134,15 @@ public class interfaz extends javax.swing.JFrame {
     
     public void ComprobarId(int i)
     {
+        boolean banId = false;
         
+        for(String reservadas : palabrasReservadas)
+            if(temporalId.compareTo(reservadas) == 0)
+                banId = true;
+        if(banId)
+            this.EnviarToken(temporalId);
+        else
+            this.EnviarToken("id");
     }
     
     public void EnviarToken(String token)
