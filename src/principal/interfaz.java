@@ -1,10 +1,14 @@
 package principal;
 
+import java.util.Stack;
+
 public class interfaz extends javax.swing.JFrame {
 
     NumeroLinea nl;
     String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz", cadenaEntrada, temporalId;
-    String palabrasReservadas[] = {"int","float","char"};
+    String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","chart",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
+    Stack<String> pilaSintactica = new Stack<>();
+    int estado = 0, saltoLinea = 1, estadoSintactico = 0;
     int tablaLexico[][] = {
         { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6,-1, 6, 6,-1, 6, 2, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
@@ -14,7 +18,7 @@ public class interfaz extends javax.swing.JFrame {
         { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
         {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
     };
-    int estado = 0;
+    
     
     public interfaz() {
         initComponents();
@@ -75,6 +79,12 @@ public class interfaz extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
     
+    public void IniciolizarVariables()
+    {
+        pilaSintactica.push("$");
+        pilaSintactica.push("I0");
+    }
+    
     public void AnalizadorLexico()
     {
         int i, posicion;
@@ -106,6 +116,8 @@ public class interfaz extends javax.swing.JFrame {
                 else
                     if(estado == 6)
                         this.ComprobarEstados(i);
+            if(cadenaEntrada == "\n")
+                saltoLinea++;
         }
     }
     
@@ -146,6 +158,30 @@ public class interfaz extends javax.swing.JFrame {
     }
     
     public void EnviarToken(String token)
+    {
+        this.AnalizadorSintactico(token);
+    }
+    
+    public void AnalizadorSintactico(String token)
+    {
+        boolean banProduccion = true;
+        
+        while(banProduccion)
+        {
+            if(pilaSintactica.peek().charAt(1) + "" == "I")
+                this.EstadosSintacticos(token);
+            else
+                this.Producciones(pilaSintactica.peek());
+        }           
+    }
+    
+    public void EstadosSintacticos(String token)
+    {
+        estadoSintactico = Integer.parseInt(pilaSintactica.peek().substring(1));
+        
+    }
+    
+    public void Producciones(String produccion)
     {
         
     }
