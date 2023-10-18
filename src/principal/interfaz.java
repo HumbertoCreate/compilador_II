@@ -13,6 +13,7 @@ public class interfaz extends javax.swing.JFrame {
         { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5},
         {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
     };
+    int estado = 0;
     
     public interfaz() {
         initComponents();
@@ -75,7 +76,7 @@ public class interfaz extends javax.swing.JFrame {
     
     public void AnalizadorLexico()
     {
-        int i, posicion, estado = 0;
+        int i, posicion;
         boolean banCadena = true;
         
         for(i = 0; i < cadenaEntrada.length(); i++)
@@ -99,12 +100,43 @@ public class interfaz extends javax.swing.JFrame {
                 else
                     temporalId += cadenaEntrada.charAt(i);
             if(i + 1 < cadenaEntrada.length() && lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i)) != -1 )
-                if(tablaLexico[estado][lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i +1))] == 0)
+                if(tablaLexico[estado][lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i +1))] == 0 || tablaLexico[estado][lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i +1))] == 6)
                     this.ComprobarEstados(i);
+                else
+                    if(estado == 6)
+                        this.ComprobarEstados(i);
         }
     }
     
     public void ComprobarEstados(int i)
+    {
+        switch(estado)
+        {
+            case 1:
+                this.EnviarToken("num");
+                break;
+            case 4:
+                this.EnviarToken("num");
+                break;
+            case 3:
+                this.EnviarToken("num");
+                break;
+            case 5:
+                this.ComprobarId(i);
+                break;
+            case 6:
+                this.EnviarToken(cadenaEntrada.charAt(i) + "");
+                break;
+        }
+        
+    }
+    
+    public void ComprobarId(int i)
+    {
+        
+    }
+    
+    public void EnviarToken(String token)
     {
         
     }
