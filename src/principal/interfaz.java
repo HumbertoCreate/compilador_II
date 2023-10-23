@@ -156,6 +156,12 @@ public class interfaz extends javax.swing.JFrame {
         cadenaEntrada += "$";
         pilaSintactica.push("$");
         pilaSintactica.push("I0");
+        estado = 0;
+        saltoLinea = 1;
+        estadoSintactico = 0;
+        tokenEntrada = 0;
+        vistaAnalizadorLexico.setText("");
+        vistaAnalizadorSintactico.setText("");
     }
     
     public void AnalizadorLexico()
@@ -184,12 +190,18 @@ public class interfaz extends javax.swing.JFrame {
                 else
                     temporalId += cadenaEntrada.charAt(i);
             if(i + 1 < cadenaEntrada.length() && lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i + 1)) != -1 )
+            {
                 if(tablaLexico[estado][lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i + 1))] == 0 || tablaLexico[estado][lexicoAlfabeto.indexOf(cadenaEntrada.charAt(i +1))] == 6)
                     this.ComprobarEstados(i);
                 else
-                    if(estado == 6)
+                    if(estado == 6 || estado == 7)
                         this.ComprobarEstados(i);
-            if(cadenaEntrada == "\n")
+            }
+            else
+                if(estado == 6 || estado == 7)
+                        this.ComprobarEstados(i);        
+                                                
+            if(cadenaEntrada.charAt(i) == '\n')
                 saltoLinea++;
         }
     }
@@ -230,6 +242,7 @@ public class interfaz extends javax.swing.JFrame {
             this.EnviarToken(temporalId);
         else
             this.EnviarToken("id");
+        temporalId = "";
     }
     
     public void TerminadorCadena(int i)
@@ -281,21 +294,29 @@ public class interfaz extends javax.swing.JFrame {
     }
     
     public void Producciones(String produccion)
-     {
-        int nProduccion, nPops, x;
-        nProduccion = Integer.parseInt(produccion.substring(1));
-        nPops = producciones[nProduccion];
-        
-        for(x = 0; x < nPops; x++)
-            pilaSintactica.pop();
-            
-        estadoSintactico = Integer.parseInt(pilaSintactica.peek().substring(1));
-        for(tokenEntrada = 0; tokenEntrada < terminalesNoterminaleSintactico.length && !terminalesNoterminaleSintactico[tokenEntrada].equals(noterminalProducciones[nProduccion]); tokenEntrada++);
-        
-        pilaSintactica.push(noterminalProducciones[nProduccion]);
-        pilaSintactica.push(tablaSintactica[estadoSintactico][tokenEntrada]);
-        vistaAnalizadorSintactico.append(String.valueOf(pilaSintactica) + "\n");
-        banProduccion = true;
+    {
+        if(!produccion.equals("P0"))
+        {
+            int nProduccion, nPops, x;
+            nProduccion = Integer.parseInt(produccion.substring(1));
+            nPops = producciones[nProduccion];
+
+            for(x = 0; x < nPops; x++)
+                pilaSintactica.pop();
+
+            estadoSintactico = Integer.parseInt(pilaSintactica.peek().substring(1));
+            for(tokenEntrada = 0; tokenEntrada < terminalesNoterminaleSintactico.length && !terminalesNoterminaleSintactico[tokenEntrada].equals(noterminalProducciones[nProduccion]); tokenEntrada++);
+
+            pilaSintactica.push(noterminalProducciones[nProduccion]);
+            pilaSintactica.push(tablaSintactica[estadoSintactico][tokenEntrada]);
+            vistaAnalizadorSintactico.append(String.valueOf(pilaSintactica) + "\n");
+            banProduccion = true;
+        }
+        else
+        {
+            vistaAnalizadorSintactico.append("Se Acepta");
+            banProduccion = false;
+        }
     }
     
     public void Error()
