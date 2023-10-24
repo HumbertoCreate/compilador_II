@@ -9,7 +9,7 @@ public class interfaz extends javax.swing.JFrame {
     String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","char",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
     String noterminalProducciones [] = {"p'", "P", "P", "Tipo", "Tipo", "Tipo", "V", "V", "A", "Exp", "Exp", "Exp", "E", "E", "E", "Term", "T", "T", "T", "F", "F", "F"};
     Stack<String> pilaSintactica = new Stack<>();
-    boolean banProduccion = false;
+    boolean banProduccion = false, error = false;
     int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0;
     int producciones[] = {0, 6, 2, 2, 2, 2, 6, 4, 8, 6, 6, 4, 6, 6, 0, 4, 6, 6, 0, 2, 2, 6};
     int tablaLexico[][] = {
@@ -164,9 +164,11 @@ public class interfaz extends javax.swing.JFrame {
     
     public void IniciolizarVariables()
     {
+        error = false;
         temporalId = "";
         cadenaEntrada = inTexto.getText();
         cadenaEntrada += "$";
+        pilaSintactica.clear();
         pilaSintactica.push("$");
         pilaSintactica.push("I0");
         estado = 0;
@@ -175,6 +177,7 @@ public class interfaz extends javax.swing.JFrame {
         tokenEntrada = 0;
         vistaAnalizadorLexico.setText("");
         vistaAnalizadorSintactico.setText("");
+        vistaError.setText("");
     }
     
     public void AnalizadorLexico()
@@ -222,6 +225,9 @@ public class interfaz extends javax.swing.JFrame {
                                                 
             if(cadenaEntrada.charAt(i) == '\n')
                 saltoLinea++;
+            
+            if(error)
+                break;
         }
     }
     
@@ -289,7 +295,8 @@ public class interfaz extends javax.swing.JFrame {
                     this.Producciones(pilaSintactica.peek());
                 else
                     this.Error("Sintactico", saltoLinea);
-            
+            if(error)
+                break;
         }while(banProduccion);        
     }
     
@@ -342,6 +349,10 @@ public class interfaz extends javax.swing.JFrame {
     {
         if(tipoError.equals("Lexico"))
             vistaError.append("Error " + tipoError + " en linea " + NumeroLinea);
+        else
+            if(tipoError.equals("Sintactico"))
+                vistaError.append("Error " + tipoError + " en linea " + NumeroLinea);
+        error = true;
     }
     
     public static void main(String args[]) {
