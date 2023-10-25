@@ -1,14 +1,18 @@
 package principal;
 
 import java.util.Stack;
+import java.util.Vector;
 
 public class interfaz extends javax.swing.JFrame {
 
     NumeroLinea nl;
-    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId;
+    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior;
     String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","char",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
     String noterminalProducciones [] = {"p'", "P", "P", "Tipo", "Tipo", "Tipo", "V", "V", "A", "Exp", "Exp", "Exp", "E", "E", "E", "Term", "T", "T", "T", "F", "F", "F"};
+    Vector<String> tokenEsperados = new Vector<>(1,1);
     Stack<String> pilaSintactica = new Stack<>();
+    Stack<Integer> pilaSemantica = new Stack<>();
+    Stack<Integer> pilaOperadores = new Stack<>();
     boolean banProduccion = false, error = false;
     int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0;
     int producciones[] = {0, 6, 2, 2, 2, 2, 6, 4, 8, 6, 6, 4, 6, 6, 0, 4, 6, 6, 0, 2, 2, 6};
@@ -166,6 +170,7 @@ public class interfaz extends javax.swing.JFrame {
     {
         error = false;
         temporalId = "";
+        estadoAnterior = "";
         cadenaEntrada = inTexto.getText();
         cadenaEntrada += "$";
         pilaSintactica.clear();
@@ -178,6 +183,7 @@ public class interfaz extends javax.swing.JFrame {
         vistaAnalizadorLexico.setText("");
         vistaAnalizadorSintactico.setText("");
         vistaError.setText("");
+        tokenEsperados.removeAllElements();
     }
     
     public void AnalizadorLexico()
@@ -191,7 +197,7 @@ public class interfaz extends javax.swing.JFrame {
             
             if(posicion == -1)
             {
-                this.Error("Lexico", saltoLinea);
+                this.Error("Lexico", saltoLinea, "");
                 break;
             }
             else
@@ -199,7 +205,7 @@ public class interfaz extends javax.swing.JFrame {
             
             if(estado == -1)
             {
-                this.Error("Lexico", saltoLinea);
+                this.Error("Lexico", saltoLinea, "");
                 break;
             }
             
@@ -222,12 +228,12 @@ public class interfaz extends javax.swing.JFrame {
             else
                 if(estado == 6 || estado == 7)
                         this.ComprobarEstados(i);        
-                                                
+                      
+            if(error)
+                return;
+            
             if(cadenaEntrada.charAt(i) == '\n')
                 saltoLinea++;
-            
-            if(error)
-                break;
         }
     }
     
@@ -252,6 +258,7 @@ public class interfaz extends javax.swing.JFrame {
                 break;
             case 7:
                 this.TerminadorCadena(i);
+                break;
         }
         
     }
@@ -264,7 +271,10 @@ public class interfaz extends javax.swing.JFrame {
             if(temporalId.compareTo(reservadas) == 0)
                 banId = true;
         if(banId)
+        {
             this.EnviarToken(temporalId);
+            this.AnalizadorSemantico(temporalId);
+        }
         else
             this.EnviarToken("id");
         temporalId = "";
@@ -275,7 +285,7 @@ public class interfaz extends javax.swing.JFrame {
         if(i == cadenaEntrada.length() - 1)
             this.EnviarToken("$");
         else
-            this.Error("Lexico", saltoLinea);
+            this.Error("Lexico", saltoLinea, "");
     }
     
     public void EnviarToken(String token)
@@ -294,7 +304,7 @@ public class interfaz extends javax.swing.JFrame {
                 if(pilaSintactica.peek().charAt(0) == 'P' )
                     this.Producciones(pilaSintactica.peek());
                 else
-                    this.Error("Sintactico", saltoLinea);
+                    this.Error("Sintactico", saltoLinea, token);
             if(error)
                 break;
         }while(banProduccion);        
@@ -302,7 +312,9 @@ public class interfaz extends javax.swing.JFrame {
     
     public void EstadosSintacticos(String token)
     {
-        estadoSintactico = Integer.parseInt(pilaSintactica.peek().substring(1));
+        estadoAnterior = pilaSintactica.peek().substring(1);
+        System.out.print( estadoAnterior +' ');
+        estadoSintactico = Integer.parseInt(estadoAnterior);
         for(tokenEntrada = 0; tokenEntrada < terminalesNoterminaleSintactico.length && !terminalesNoterminaleSintactico[tokenEntrada].equals(token); tokenEntrada++);
         
         if(tablaSintactica[estadoSintactico][tokenEntrada].charAt(0) == 'I')
@@ -316,7 +328,7 @@ public class interfaz extends javax.swing.JFrame {
             if(tablaSintactica[estadoSintactico][tokenEntrada].charAt(0) == 'P')
                 this.Producciones(tablaSintactica[estadoSintactico][tokenEntrada]);
             else
-                this.Error("Sintactico", saltoLinea);
+                this.Error("Sintactico", saltoLinea, token);
     }
     
     public void Producciones(String produccion)
@@ -345,14 +357,34 @@ public class interfaz extends javax.swing.JFrame {
         }
     }
     
-    public void Error(String tipoError, int NumeroLinea)
+        
+    public void AnalizadorSemantico(String tipo)
+    {
+        String tempTipo;
+        
+    }
+    
+    public void Error(String tipoError, int NumeroLinea, String token)
     {
         if(tipoError.equals("Lexico"))
-            vistaError.append("Error " + tipoError + " en linea " + NumeroLinea);
+            vistaError.append("Error " + tipoError + " en linea " + NumeroLinea + "\n");
         else
             if(tipoError.equals("Sintactico"))
+            {
                 vistaError.append("Error " + tipoError + " en linea " + NumeroLinea);
+                this.AnalizarTokenEsperado(token);
+                vistaAnalizadorSintactico.append("Se Rechaza");
+            }
         error = true;
+    }
+    
+    public void AnalizarTokenEsperado(String token)
+    {
+        for(int x = 0; x < 15; x++)
+            if(!tablaSintactica[Integer.parseInt(estadoAnterior)][x].equals("-1"))
+                tokenEsperados.addElement(terminalesNoterminaleSintactico[x]);
+        
+        vistaError.append(" se recivio " + token + " Se esperaba " + String.valueOf(tokenEsperados));
     }
     
     public static void main(String args[]) {
