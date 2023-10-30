@@ -1,20 +1,22 @@
 package principal;
 
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.Vector;
 
 public class interfaz extends javax.swing.JFrame {
 
     NumeroLinea nl;
-    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior;
+    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior, temporalValor;
     String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","char",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
     String noterminalProducciones [] = {"p'", "P", "P", "Tipo", "Tipo", "Tipo", "V", "V", "A", "Exp", "Exp", "Exp", "E", "E", "E", "Term", "T", "T", "T", "F", "F", "F"};
     Vector<String> tokenEsperados = new Vector<>(1,1);
+    HashMap<String, Integer> tablaSimbolos = new HashMap<>();
     Stack<String> pilaSintactica = new Stack<>();
     Stack<Integer> pilaSemantica = new Stack<>();
     Stack<Integer> pilaOperadores = new Stack<>();
     boolean banProduccion = false, error = false;
-    int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0;
+    int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0, tipoDato = 0;
     int producciones[] = {0, 6, 2, 2, 2, 2, 6, 4, 8, 6, 6, 4, 6, 6, 0, 4, 6, 6, 0, 2, 2, 6};
     int tablaLexico[][] = {
         { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7},
@@ -272,11 +274,22 @@ public class interfaz extends javax.swing.JFrame {
                 banId = true;
         if(banId)
         {
+            if(temporalId.equals("int"))
+                tipoDato = 0;
+            else
+                if(temporalId.equals("float"))
+                    tipoDato = 1;
+                else
+                    if(temporalId.equals("char"))
+                        tipoDato = 2;
             this.EnviarToken(temporalId);
-            this.AnalizadorSemantico(temporalId);
         }
         else
+        {
+            temporalValor = temporalId;
+            this.TablaSimbolos();
             this.EnviarToken("id");
+        }
         temporalId = "";
     }
     
@@ -357,10 +370,22 @@ public class interfaz extends javax.swing.JFrame {
         }
     }
     
-        
-    public void AnalizadorSemantico(String tipo)
+    public void TablaSimbolos()
     {
-        String tempTipo;
+        boolean variableRepetida = true;
+        if(!tablaSimbolos.isEmpty())
+            for(String var : tablaSimbolos.keySet())
+                if(temporalValor.equals(var))
+                    variableRepetida = false;
+        if(variableRepetida)
+        {
+            tablaSimbolos.put(temporalValor, tipoDato);
+            System.out.println(tablaSimbolos);
+        }
+    }
+    
+    public void AnalizadorSemantico()
+    {
         
     }
     
