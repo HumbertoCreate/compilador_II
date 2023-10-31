@@ -259,24 +259,24 @@ public class interfaz extends javax.swing.JFrame {
     {
         switch(estado)
         {
-            case 1:
+            case 1 ->
+            {
                 this.EnviarToken("num");
-                break;
-            case 3:
+                tipoDato = 0;
+            }
+            case 3 ->
+            {
                 this.EnviarToken("num");
-                break;
-            case 4:
+                tipoDato = 1;
+            }
+            case 4 ->
+            {
                 this.EnviarToken("num");
-                break;
-            case 5:
-                this.ComprobarId(i);
-                break;
-            case 6:
-                this.EnviarToken(cadenaEntrada.charAt(i) + "");
-                break;
-            case 7:
-                this.TerminadorCadena(i);
-                break;
+                tipoDato = 0;
+            }
+            case 5 -> this.ComprobarId(i);
+            case 6 -> this.EnviarToken(cadenaEntrada.charAt(i) + "");
+            case 7 -> this.TerminadorCadena(i);
         }
         
     }
@@ -423,6 +423,18 @@ public class interfaz extends javax.swing.JFrame {
     }
     
     public void AnalizadorSemantico(String token)
+    {
+        if(token.equals("id") || token.equals("num"))
+            pilaSemantica.push(tipoDato);
+        if(token.equals("+") || token.equals("-"))
+            this.OperadoresPila(0);
+        if(token.equals("*") || token.equals("/"))
+            this.OperadoresPila(1);
+        if(token.equals("(") || token.equals(")"))
+            this.OperadoresPila(2);
+    }
+    
+    public void OperadoresPila(int valor)
     {
         
     }
