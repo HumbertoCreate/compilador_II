@@ -7,16 +7,17 @@ import java.util.Vector;
 public class interfaz extends javax.swing.JFrame {
 
     NumeroLinea nl;
-    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior, temporalValor;
+    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior, temporalValor, estadoSintacticoActual, valorExprecion;
     String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","char",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
     String noterminalProducciones [] = {"p'", "P", "P", "Tipo", "Tipo", "Tipo", "V", "V", "A", "Exp", "Exp", "Exp", "E", "E", "E", "Term", "T", "T", "T", "F", "F", "F"};
+    String estadosSemanticos[] = {"I18", "I19", "I20", "I27", "I28", "I30", "I31", "I40"};
     Vector<String> tokenEsperados = new Vector<>(1,1);
     HashMap<String, Integer> tablaSimbolos = new HashMap<>();
     Stack<String> pilaSintactica = new Stack<>();
     Stack<Integer> pilaSemantica = new Stack<>();
     Stack<Integer> pilaOperadores = new Stack<>();
     boolean banProduccion = false, error = false;
-    int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0, tipoDato = 0;
+    int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0, tipoDato = 0, datoExprecion;
     int producciones[] = {0, 6, 2, 2, 2, 2, 6, 4, 8, 6, 6, 4, 6, 6, 0, 4, 6, 6, 0, 2, 2, 6};
     int tablaLexico[][] = {
         { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7},
@@ -95,6 +96,8 @@ public class interfaz extends javax.swing.JFrame {
         vistaAnalizadorLexico = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
         vistaError = new javax.swing.JTextArea();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        TablaSimbolos = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -121,43 +124,54 @@ public class interfaz extends javax.swing.JFrame {
         vistaError.setRows(5);
         jScrollPane3.setViewportView(vistaError);
 
+        TablaSimbolos.setColumns(20);
+        TablaSimbolos.setRows(5);
+        jScrollPane4.setViewportView(TablaSimbolos);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(44, 44, 44)
-                .addComponent(correr)
-                .addGap(51, 51, 51))
             .addGroup(layout.createSequentialGroup()
                 .addGap(38, 38, 38)
-                .addComponent(inRaiz, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 226, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 382, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 382, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(23, 23, 23))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(inRaiz, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 250, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 382, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 382, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 382, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(23, 23, 23))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(71, 71, 71)
+                                .addComponent(correr)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(inRaiz, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(inRaiz, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 49, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                         .addComponent(correr)
-                        .addGap(32, 32, 32))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(22, 22, 22))))
+                        .addGap(3, 3, 3)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(132, 132, 132))))
         );
 
         pack();
@@ -186,6 +200,8 @@ public class interfaz extends javax.swing.JFrame {
         vistaAnalizadorSintactico.setText("");
         vistaError.setText("");
         tokenEsperados.removeAllElements();
+        valorExprecion = "";
+        datoExprecion = 0;
     }
     
     public void AnalizadorLexico()
@@ -274,20 +290,17 @@ public class interfaz extends javax.swing.JFrame {
                 banId = true;
         if(banId)
         {
-            if(temporalId.equals("int"))
-                tipoDato = 0;
-            else
-                if(temporalId.equals("float"))
-                    tipoDato = 1;
-                else
-                    if(temporalId.equals("char"))
-                        tipoDato = 2;
+            switch(temporalId)
+            {
+                case "int" -> tipoDato = 0;
+                case "float" -> tipoDato = 1;
+                case "char" -> tipoDato = 2;
+            }
             this.EnviarToken(temporalId);
         }
         else
         {
             temporalValor = temporalId;
-            this.TablaSimbolos();
             this.EnviarToken("id");
         }
         temporalId = "";
@@ -311,39 +324,46 @@ public class interfaz extends javax.swing.JFrame {
     {
         do
         {
-            if(pilaSintactica.peek().charAt(0) == 'I')
-                this.EstadosSintacticos(token);
-            else
-                if(pilaSintactica.peek().charAt(0) == 'P' )
-                    this.Producciones(pilaSintactica.peek());
-                else
-                    this.Error("Sintactico", saltoLinea, token);
+            switch(pilaSintactica.peek().charAt(0))
+            {
+                case 'I' -> this.EstadosSintacticos(token);
+                case 'P' -> this.Producciones(token);
+                default -> this.Error("Sintactico", saltoLinea, token);
+            }
             if(error)
                 break;
         }while(banProduccion);        
     }
     
+    @SuppressWarnings("empty-statement")
     public void EstadosSintacticos(String token)
     {
         estadoAnterior = pilaSintactica.peek().substring(1);
-        System.out.print( estadoAnterior +' ');
         estadoSintactico = Integer.parseInt(estadoAnterior);
         for(tokenEntrada = 0; tokenEntrada < terminalesNoterminaleSintactico.length && !terminalesNoterminaleSintactico[tokenEntrada].equals(token); tokenEntrada++);
         
-        if(tablaSintactica[estadoSintactico][tokenEntrada].charAt(0) == 'I')
+        switch(tablaSintactica[estadoSintactico][tokenEntrada].charAt(0))
         {
-            pilaSintactica.push(token);
-            pilaSintactica.push(tablaSintactica[estadoSintactico][tokenEntrada]);
-            banProduccion = false;
-            vistaAnalizadorSintactico.append(String.valueOf(pilaSintactica) + "\n");
+            case 'I' ->
+            {
+                pilaSintactica.push(token);
+                pilaSintactica.push(tablaSintactica[estadoSintactico][tokenEntrada]);
+                vistaAnalizadorSintactico.append(String.valueOf(pilaSintactica) + "\n");
+                banProduccion = false;
+                if(pilaSintactica.peek().equals("I8") || pilaSintactica.peek().equals("I21"))
+                    this.TablaSimbolos();
+                if(pilaSintactica.peek().equals("I7"))
+                    this.ValidarIdSemantico();
+                for(String i : estadosSemanticos)
+                    if(pilaSintactica.peek().equals(i))
+                        AnalizadorSemantico(token);
+            }
+            case 'P' -> this.Producciones(tablaSintactica[estadoSintactico][tokenEntrada]);
+            default -> this.Error("Sintactico", saltoLinea, token);
         }
-        else
-            if(tablaSintactica[estadoSintactico][tokenEntrada].charAt(0) == 'P')
-                this.Producciones(tablaSintactica[estadoSintactico][tokenEntrada]);
-            else
-                this.Error("Sintactico", saltoLinea, token);
     }
     
+    @SuppressWarnings("empty-statement")
     public void Producciones(String produccion)
     {
         if(!produccion.equals("P0"))
@@ -382,9 +402,27 @@ public class interfaz extends javax.swing.JFrame {
             tablaSimbolos.put(temporalValor, tipoDato);
             System.out.println(tablaSimbolos);
         }
+        for(String i : tablaSimbolos.keySet())
+            TablaSimbolos.append(i);
+        TablaSimbolos.append("\n");
     }
     
-    public void AnalizadorSemantico()
+    public void ValidarIdSemantico()
+    {
+        boolean banTabla = false;
+        if(!tablaSimbolos.isEmpty())
+            for(String i : tablaSimbolos.keySet())
+                if(temporalValor.equals(i))
+                    banTabla = true;
+        if(banTabla)
+        {
+            valorExprecion = temporalValor;
+            datoExprecion = tablaSimbolos.get(valorExprecion);
+        }
+        System.out.println(valorExprecion + datoExprecion);
+    }
+    
+    public void AnalizadorSemantico(String token)
     {
         
     }
@@ -438,12 +476,14 @@ public class interfaz extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextArea TablaSimbolos;
     private javax.swing.JButton correr;
     private javax.swing.JScrollPane inRaiz;
     private javax.swing.JTextArea inTexto;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTextArea vistaAnalizadorLexico;
     private javax.swing.JTextArea vistaAnalizadorSintactico;
     private javax.swing.JTextArea vistaError;
