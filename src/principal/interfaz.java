@@ -430,11 +430,49 @@ public class interfaz extends javax.swing.JFrame {
             this.OperadoresPila(0);
         if(token.equals("*") || token.equals("/"))
             this.OperadoresPila(1);
-        if(token.equals("(") || token.equals(")"))
+        if(token.equals("("))
             this.OperadoresPila(2);
+        if(token.equals(")"))
+            this.OperadoresPila(3);
     }
     
     public void OperadoresPila(int valor)
+    {
+        if(pilaOperadores.isEmpty())
+            pilaOperadores.push(valor);
+        else
+        {
+            switch(valor)
+            {
+                case 2 -> pilaOperadores.push(valor);
+                case 3 ->
+                {
+                    for(int i : pilaOperadores)
+                        if(i == 2)
+                        {
+                            pilaOperadores.pop();
+                            break;
+                        }
+                        else
+                            this.TiposDatosAnalisis(pilaOperadores.pop());
+                }
+                default ->
+                {
+                    do
+                    {
+                        if(pilaOperadores.peek() >= valor)
+                            this.TiposDatosAnalisis(pilaOperadores.pop());
+                        else
+                            break;
+                    }while(!pilaOperadores.isEmpty());
+                    pilaOperadores.push(valor);
+                }
+            }
+        }
+        
+    }
+    
+    public void TiposDatosAnalisis(int operador)
     {
         
     }
