@@ -193,9 +193,12 @@ public class interfaz extends javax.swing.JFrame {
         error = false;
         temporalId = "";
         estadoAnterior = "";
+        codigoIntermedioSalida = "";
         cadenaEntrada = inTexto.getText();
         cadenaEntrada += "$";
         pilaSintactica.clear();
+        pilaOperadores.clear();
+        pilaSemantica.clear();
         pilaSintactica.push("$");
         pilaSintactica.push("I0");
         estado = 0;
@@ -208,6 +211,9 @@ public class interfaz extends javax.swing.JFrame {
         tokenEsperados.removeAllElements();
         valorExprecion = "";
         datoExprecion = 0;
+        tipoDato = 0;
+        temporalValor = "";
+        tablaSimbolos.clear();
     }
     
     public void AnalizadorLexico()
@@ -415,6 +421,8 @@ public class interfaz extends javax.swing.JFrame {
                 case 2 -> codigoIntermedioSalida += "char " + temporalValor + ";\n";
             }
         }
+        else
+            this.Error("Semantico", saltoLinea, "No se pueden declarar dos id iguales");
     }
     
     public void ValidarIdSemantico()
@@ -429,11 +437,24 @@ public class interfaz extends javax.swing.JFrame {
             valorExprecion = temporalValor;
             datoExprecion = tablaSimbolos.get(valorExprecion);
         }
+        else
+            this.Error("Semantico", saltoLinea, "No puedes realizar una asignacion con una variable no declarada");
     }
     
     public void AnalizadorSemantico(String token)
     {
-        if(token.equals("id") || token.equals("num"))
+        boolean banId = false;
+        if(token.equals("id"))
+        {
+            for(String id : tablaSimbolos.keySet())
+                if(temporalValor.equals(id))
+                    banId = true;
+            if(banId)
+                pilaSemantica.push(tablaSimbolos.get(temporalValor));
+            else
+                this.Error("Semantico", saltoLinea, "No puedes realizar una exprecion con una variable no declarada");
+        }
+        if(token.equals("num"))
             pilaSemantica.push(tipoDato);
         if(token.equals("+") || token.equals("-"))
             this.OperadoresPila(0);
@@ -487,7 +508,11 @@ public class interfaz extends javax.swing.JFrame {
         valor2 = pilaSemantica.pop();
         resultado = tablaSemantica[valor1][valor2];
         if(resultado != -1)
+        {
             pilaSemantica.push(resultado);
+            if(pilaOperadores.isEmpty())
+                this.AnalisisExprecion();
+        }
         else
             this.Error("Semantico", saltoLinea, "No se puede realizar una exprecion con estos tipos de datos");
         AnalisisSemantico.append(codigoIntermedioSalida);
