@@ -10,7 +10,7 @@ public class interfaz extends javax.swing.JFrame {
     String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior, temporalValor, estadoSintacticoActual, valorExprecion;
     String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","char",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
     String noterminalProducciones [] = {"p'", "P", "P", "Tipo", "Tipo", "Tipo", "V", "V", "A", "Exp", "Exp", "Exp", "E", "E", "E", "Term", "T", "T", "T", "F", "F", "F"};
-    String estadosSemanticos[] = {"I18", "I19", "I20", "I27", "I28", "I30", "I31", "I40"};
+    String estadosSemanticos[] = {"I18", "I19", "I20", "I27", "I28", "I30", "I31", "I40"}, codigoIntermedioSalida = "";
     Vector<String> tokenEsperados = new Vector<>(1,1);
     HashMap<String, Integer> tablaSimbolos = new HashMap<>();
     Stack<String> pilaSintactica = new Stack<>();
@@ -76,6 +76,12 @@ public class interfaz extends javax.swing.JFrame {
         { "-1", "-1", "-1", "-1", "-1", "-1","P17","P17","P17", "-1", "-1", "-1","P17", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"},
     };
     
+    int tablaSemantica[][] = {
+        { 0, 1,-1},
+        { 1, 1,-1},
+        {-1,-1,-1}
+    };
+    
     public interfaz() {
         initComponents();
         nl = new NumeroLinea(inTexto);
@@ -97,7 +103,7 @@ public class interfaz extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         vistaError = new javax.swing.JTextArea();
         jScrollPane4 = new javax.swing.JScrollPane();
-        TablaSimbolos = new javax.swing.JTextArea();
+        AnalisisSemantico = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -124,9 +130,9 @@ public class interfaz extends javax.swing.JFrame {
         vistaError.setRows(5);
         jScrollPane3.setViewportView(vistaError);
 
-        TablaSimbolos.setColumns(20);
-        TablaSimbolos.setRows(5);
-        jScrollPane4.setViewportView(TablaSimbolos);
+        AnalisisSemantico.setColumns(20);
+        AnalisisSemantico.setRows(5);
+        jScrollPane4.setViewportView(AnalisisSemantico);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -354,6 +360,8 @@ public class interfaz extends javax.swing.JFrame {
                     this.TablaSimbolos();
                 if(pilaSintactica.peek().equals("I7"))
                     this.ValidarIdSemantico();
+                if(pilaSintactica.peek().equals("I23"))
+                    this.AnalisisExprecion();
                 for(String i : estadosSemanticos)
                     if(pilaSintactica.peek().equals(i))
                         AnalizadorSemantico(token);
@@ -400,11 +408,13 @@ public class interfaz extends javax.swing.JFrame {
         if(variableRepetida)
         {
             tablaSimbolos.put(temporalValor, tipoDato);
-            System.out.println(tablaSimbolos);
+            switch(tablaSimbolos.get(temporalValor))
+            {
+                case 0 -> codigoIntermedioSalida += "int " + temporalValor + ";\n";
+                case 1 -> codigoIntermedioSalida += "float " + temporalValor + ";\n";
+                case 2 -> codigoIntermedioSalida += "char " + temporalValor + ";\n";
+            }
         }
-        for(String i : tablaSimbolos.keySet())
-            TablaSimbolos.append(i);
-        TablaSimbolos.append("\n");
     }
     
     public void ValidarIdSemantico()
@@ -419,7 +429,6 @@ public class interfaz extends javax.swing.JFrame {
             valorExprecion = temporalValor;
             datoExprecion = tablaSimbolos.get(valorExprecion);
         }
-        System.out.println(valorExprecion + datoExprecion);
     }
     
     public void AnalizadorSemantico(String token)
@@ -460,7 +469,7 @@ public class interfaz extends javax.swing.JFrame {
                 {
                     do
                     {
-                        if(pilaOperadores.peek() >= valor)
+                        if(pilaOperadores.peek() <= valor)
                             this.TiposDatosAnalisis(pilaOperadores.pop());
                         else
                             break;
@@ -469,25 +478,47 @@ public class interfaz extends javax.swing.JFrame {
                 }
             }
         }
-        
     }
     
     public void TiposDatosAnalisis(int operador)
     {
-        
+        int valor1, valor2, resultado;
+        valor1 = pilaSemantica.pop();
+        valor2 = pilaSemantica.pop();
+        resultado = tablaSemantica[valor1][valor2];
+        if(resultado != -1)
+            pilaSemantica.push(resultado);
+        else
+            this.Error("Semantico", saltoLinea, "No se puede realizar una exprecion con estos tipos de datos");
+        AnalisisSemantico.append(codigoIntermedioSalida);
+    }
+    
+    public void AnalisisExprecion()
+    {
+        if(!pilaOperadores.isEmpty())
+            this.TiposDatosAnalisis(pilaOperadores.pop());
+        else
+            if(datoExprecion != pilaSemantica.pop())
+                this.Error("Semantico", saltoLinea, "No se pueden igualar distintos tipos de datos");
     }
     
     public void Error(String tipoError, int NumeroLinea, String token)
     {
-        if(tipoError.equals("Lexico"))
-            vistaError.append("Error " + tipoError + " en linea " + NumeroLinea + "\n");
-        else
-            if(tipoError.equals("Sintactico"))
+        switch(tipoError)
+        {
+            case "Lexico" -> vistaError.append("Error " + tipoError + " en linea " + NumeroLinea + "\n");
+            case "Sintactico" ->
             {
                 vistaError.append("Error " + tipoError + " en linea " + NumeroLinea);
                 this.AnalizarTokenEsperado(token);
                 vistaAnalizadorSintactico.append("Se Rechaza");
             }
+            case "Semantico" ->
+            {
+                vistaError.append("Error " + tipoError + " en linea " + NumeroLinea + ": " + token);
+                vistaAnalizadorSintactico.append("Se Rechaza");
+            }
+        }
         error = true;
     }
     
@@ -526,7 +557,7 @@ public class interfaz extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea TablaSimbolos;
+    private javax.swing.JTextArea AnalisisSemantico;
     private javax.swing.JButton correr;
     private javax.swing.JScrollPane inRaiz;
     private javax.swing.JTextArea inTexto;
