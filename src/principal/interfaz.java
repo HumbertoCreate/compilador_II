@@ -7,17 +7,18 @@ import java.util.Vector;
 public class interfaz extends javax.swing.JFrame {
 
     NumeroLinea nl;
-    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior, temporalValor, estadoSintacticoActual, valorExprecion;
+    String lexicoAlfabeto = "0123456789+-/*=(),;. \nABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz$", cadenaEntrada, temporalId, estadoAnterior, temporalValor, valorExprecion;
     String palabrasReservadas[] = {"int","float","char"}, terminalesNoterminaleSintactico[] = {"id","num","int","float","char",",",";","+","-","*","/","(",")","=","$","P","Tipo","V","A","Exp","E","Term","T","F"};
     String noterminalProducciones [] = {"p'", "P", "P", "Tipo", "Tipo", "Tipo", "V", "V", "A", "Exp", "Exp", "Exp", "E", "E", "E", "Term", "T", "T", "T", "F", "F", "F"};
     String estadosSemanticos[] = {"I18", "I19", "I20", "I27", "I28", "I30", "I31", "I40"}, codigoIntermedioSalida = "";
     Vector<String> tokenEsperados = new Vector<>(1,1);
     HashMap<String, Integer> tablaSimbolos = new HashMap<>();
     Stack<String> pilaSintactica = new Stack<>();
+    Stack<String> pilaOperadores = new Stack<>();
     Stack<Integer> pilaSemantica = new Stack<>();
-    Stack<Integer> pilaOperadores = new Stack<>();
+    Stack<Integer> pilaOperadoresValor = new Stack<>();
     boolean banProduccion = false, error = false;
-    int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0, tipoDato = 0, datoExprecion;
+    int estado = 0, saltoLinea = 1, estadoSintactico = 0, tokenEntrada = 0, tipoDato = 0, datoExprecion, variableCodigoIntermedio = 0;
     int producciones[] = {0, 6, 2, 2, 2, 2, 6, 4, 8, 6, 6, 4, 6, 6, 0, 4, 6, 6, 0, 2, 2, 6};
     int tablaLexico[][] = {
         { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6,-1, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7},
@@ -197,7 +198,7 @@ public class interfaz extends javax.swing.JFrame {
         cadenaEntrada = inTexto.getText();
         cadenaEntrada += "$";
         pilaSintactica.clear();
-        pilaOperadores.clear();
+        pilaOperadoresValor.clear();
         pilaSemantica.clear();
         pilaSintactica.push("$");
         pilaSintactica.push("I0");
@@ -212,6 +213,7 @@ public class interfaz extends javax.swing.JFrame {
         valorExprecion = "";
         datoExprecion = 0;
         tipoDato = 0;
+        variableCodigoIntermedio = 0;
         temporalValor = "";
         tablaSimbolos.clear();
     }
@@ -450,16 +452,26 @@ public class interfaz extends javax.swing.JFrame {
                 if(temporalValor.equals(id))
                     banId = true;
             if(banId)
+            {
                 pilaSemantica.push(tablaSimbolos.get(temporalValor));
+                variableCodigoIntermedio++;
+                codigoIntermedioSalida += "v" + variableCodigoIntermedio + " = " + temporalValor + ";\n";
+            }
             else
                 this.Error("Semantico", saltoLinea, "No puedes realizar una exprecion con una variable no declarada");
         }
         if(token.equals("num"))
             pilaSemantica.push(tipoDato);
         if(token.equals("+") || token.equals("-"))
+        {
             this.OperadoresPila(0);
+            pilaOperadores.push(token);
+        }
         if(token.equals("*") || token.equals("/"))
+        {
             this.OperadoresPila(1);
+            pilaOperadores.push(token);
+        }
         if(token.equals("("))
             this.OperadoresPila(2);
         if(token.equals(")"))
@@ -468,34 +480,34 @@ public class interfaz extends javax.swing.JFrame {
     
     public void OperadoresPila(int valor)
     {
-        if(pilaOperadores.isEmpty())
-            pilaOperadores.push(valor);
+        if(pilaOperadoresValor.isEmpty())
+            pilaOperadoresValor.push(valor);
         else
         {
             switch(valor)
             {
-                case 2 -> pilaOperadores.push(valor);
+                case 2 -> pilaOperadoresValor.push(valor);
                 case 3 ->
                 {
-                    for(int i : pilaOperadores)
+                    for(int i : pilaOperadoresValor)
                         if(i == 2)
                         {
-                            pilaOperadores.pop();
+                            pilaOperadoresValor.pop();
                             break;
                         }
                         else
-                            this.TiposDatosAnalisis(pilaOperadores.pop());
+                            this.TiposDatosAnalisis(pilaOperadoresValor.pop());
                 }
                 default ->
                 {
                     do
                     {
-                        if(pilaOperadores.peek() <= valor)
-                            this.TiposDatosAnalisis(pilaOperadores.pop());
+                        if(pilaOperadoresValor.peek() <= valor)
+                            this.TiposDatosAnalisis(pilaOperadoresValor.pop());
                         else
                             break;
-                    }while(!pilaOperadores.isEmpty());
-                    pilaOperadores.push(valor);
+                    }while(!pilaOperadoresValor.isEmpty());
+                    pilaOperadoresValor.push(valor);
                 }
             }
         }
@@ -509,22 +521,26 @@ public class interfaz extends javax.swing.JFrame {
         resultado = tablaSemantica[valor1][valor2];
         if(resultado != -1)
         {
+            codigoIntermedioSalida += "v" + (variableCodigoIntermedio - 1) + " = " + "v" + (variableCodigoIntermedio - 1) + " " + pilaOperadores.pop() + " v" + variableCodigoIntermedio + "\n";
+            variableCodigoIntermedio--;
             pilaSemantica.push(resultado);
-            if(pilaOperadores.isEmpty())
-                this.AnalisisExprecion();
         }
         else
             this.Error("Semantico", saltoLinea, "No se puede realizar una exprecion con estos tipos de datos");
-        AnalisisSemantico.append(codigoIntermedioSalida);
+        
     }
     
     public void AnalisisExprecion()
     {
-        if(!pilaOperadores.isEmpty())
-            this.TiposDatosAnalisis(pilaOperadores.pop());
+        while(!pilaOperadoresValor.isEmpty())
+            this.TiposDatosAnalisis(pilaOperadoresValor.pop());
+        if(datoExprecion != pilaSemantica.pop())
+            this.Error("Semantico", saltoLinea, "No se pueden igualar distintos tipos de datos");
         else
-            if(datoExprecion != pilaSemantica.pop())
-                this.Error("Semantico", saltoLinea, "No se pueden igualar distintos tipos de datos");
+        {
+            codigoIntermedioSalida += valorExprecion + " = v1;\n";
+            AnalisisSemantico.append(codigoIntermedioSalida);
+        }
     }
     
     public void Error(String tipoError, int NumeroLinea, String token)
